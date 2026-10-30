@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
+import connectDB from '@/lib/db';
+import UploadedFile from '@/models/UploadedFile';
 
 export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 export const MAX_BG_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -66,17 +68,22 @@ export function validateImageMagicBytes(buffer: Buffer): FileValidationResult {
 export const UPLOADS_BASE_DIR = path.join(process.cwd(), 'public', 'uploads');
 
 export function ensureUploadDirs(): void {
-  const dirs = [
-    UPLOADS_BASE_DIR,
-    path.join(UPLOADS_BASE_DIR, 'avatars'),
-    path.join(UPLOADS_BASE_DIR, 'logos'),
-    path.join(UPLOADS_BASE_DIR, 'qr'),
-    path.join(UPLOADS_BASE_DIR, 'backgrounds'),
-  ];
-  for (const dir of dirs) {
-    if (!fs.existsSync(/*turbopackIgnore: true*/ dir)) {
-      fs.mkdirSync(/*turbopackIgnore: true*/ dir, { recursive: true });
+  try {
+    const dirs = [
+      UPLOADS_BASE_DIR,
+      path.join(UPLOADS_BASE_DIR, 'avatars'),
+      path.join(UPLOADS_BASE_DIR, 'logos'),
+      path.join(UPLOADS_BASE_DIR, 'qr'),
+      path.join(UPLOADS_BASE_DIR, 'backgrounds'),
+    ];
+    for (const dir of dirs) {
+      if (!fs.existsSync(/*turbopackIgnore: true*/ dir)) {
+        fs.mkdirSync(/*turbopackIgnore: true*/ dir, { recursive: true });
+      }
     }
+  } catch {
+    // In serverless environments (e.g. Vercel read-only filesystem /var/task),
+    // local directory creation is skipped and files are persisted in MongoDB.
   }
 }
 
@@ -85,7 +92,7 @@ export function ensureUploadDirs(): void {
  * - Resizes avatars to max 512px.
  * - Resizes desktop backgrounds to max 2560px.
  * - Resizes mobile backgrounds to max 1200px.
- * - Saves into public/uploads/[avatars|logos|backgrounds]/
+ * - Saves into local disk if writable, and always syncs to MongoDB UploadedFile.
  * - Returns relative path (e.g. /uploads/backgrounds/abc123xyz.webp)
  */
 export async function processAndSaveImage(
@@ -101,6 +108,7 @@ export async function processAndSaveImage(
 
   let processedBuffer = buffer;
   const ext = validation.ext;
+  const mimeType = validation.mime || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
   if (type === 'avatar') {
     // Resize avatar to max 512px, maintaining aspect ratio
@@ -133,36 +141,61 @@ export async function processAndSaveImage(
     type === 'avatar' ? 'avatars' : type === 'logo' ? 'logos' : 'backgrounds';
   const targetDir = path.join(UPLOADS_BASE_DIR, folder);
   const targetPath = path.join(targetDir, filename);
-
-  await fs.promises.writeFile(targetPath, processedBuffer);
-
   const relativePath = `/uploads/${folder}/${filename}`;
+
+  // 1. Try saving to local filesystem (for local dev / VPS)
+  try {
+    await fs.promises.writeFile(targetPath, processedBuffer);
+  } catch {
+    // Expected on read-only environments like Vercel serverless
+  }
+
+  // 2. Persist in MongoDB for seamless serverless compatibility
+  try {
+    await connectDB();
+    await UploadedFile.findOneAndUpdate(
+      { path: relativePath },
+      {
+        path: relativePath,
+        data: processedBuffer,
+        mimeType,
+        size: processedBuffer.length,
+      },
+      { upsert: true, new: true }
+    );
+  } catch (dbErr) {
+    console.error('Failed to save file to MongoDB:', dbErr);
+  }
+
   return { relativePath, fullPath: targetPath };
 }
 
 /**
- * Safely deletes an uploaded file if it resides in public/uploads/
+ * Safely deletes an uploaded file from disk and MongoDB
  */
 export async function deleteUploadedFile(relativePath?: string | null): Promise<void> {
   if (!relativePath || typeof relativePath !== 'string') return;
 
+  const cleanPath = relativePath.split('?')[0];
+
+  // 1. Delete from local disk if exists and writable
   try {
-    // Strip query strings if present
-    const cleanPath = relativePath.split('?')[0];
     const normalized = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
     const fullPath = path.resolve(process.cwd(), 'public', normalized);
 
-    // Path traversal check
     const publicUploadsResolved = path.resolve(UPLOADS_BASE_DIR);
-    if (!fullPath.startsWith(publicUploadsResolved)) {
-      console.warn(`Prevented path traversal deletion attempt: ${relativePath}`);
-      return;
-    }
-
-    if (fs.existsSync(fullPath)) {
+    if (fullPath.startsWith(publicUploadsResolved) && fs.existsSync(fullPath)) {
       await fs.promises.unlink(fullPath);
     }
+  } catch {
+    // Ignore read-only filesystem delete errors
+  }
+
+  // 2. Delete from MongoDB
+  try {
+    await connectDB();
+    await UploadedFile.deleteOne({ path: cleanPath });
   } catch (error) {
-    console.error(`Error deleting file ${relativePath}:`, error);
+    console.error(`Error deleting file ${cleanPath} from database:`, error);
   }
 }

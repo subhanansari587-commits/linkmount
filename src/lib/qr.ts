@@ -2,6 +2,8 @@ import QRCode from 'qrcode';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
+import connectDB from '@/lib/db';
+import UploadedFile from '@/models/UploadedFile';
 import { ensureUploadDirs, UPLOADS_BASE_DIR } from './upload';
 
 export interface GenerateQrOptions {
@@ -52,34 +54,52 @@ export async function generateTenantQrCode({
     },
   });
 
-  // Resolve logo path according to priority
-  let chosenLogoPath: string | null = null;
+  // Resolve logo buffer according to priority (tenant logo -> global default logo)
+  let logoBufferToComposite: Buffer | null = null;
+  const targetLogoRelPath = tenantLogoPath?.trim() || defaultLogoPath?.trim();
 
-  if (tenantLogoPath && tenantLogoPath.trim()) {
-    const clean = tenantLogoPath.replace(/^\//, '').split('?')[0];
-    const full = path.join(process.cwd(), 'public', clean);
+  if (targetLogoRelPath) {
+    const cleanRelPath = targetLogoRelPath.split('?')[0];
+    const normalized = cleanRelPath.startsWith('/') ? cleanRelPath.slice(1) : cleanRelPath;
+    const full = path.join(process.cwd(), 'public', normalized);
+
+    // 1. Try reading from disk first
     if (fs.existsSync(full)) {
-      chosenLogoPath = full;
+      try {
+        logoBufferToComposite = await fs.promises.readFile(full);
+      } catch {
+        // Disk read failed, try DB
+      }
     }
-  }
 
-  if (!chosenLogoPath && defaultLogoPath && defaultLogoPath.trim()) {
-    const clean = defaultLogoPath.replace(/^\//, '').split('?')[0];
-    const full = path.join(process.cwd(), 'public', clean);
-    if (fs.existsSync(full)) {
-      chosenLogoPath = full;
+    // 2. Fallback to MongoDB if not on disk (e.g. on Vercel)
+    if (!logoBufferToComposite) {
+      try {
+        await connectDB();
+        const logoDoc = await UploadedFile.findOne({
+          path: cleanRelPath.startsWith('/') ? cleanRelPath : `/${cleanRelPath}`,
+        }).lean();
+
+        if (logoDoc && logoDoc.data) {
+          logoBufferToComposite = Buffer.isBuffer(logoDoc.data)
+            ? logoDoc.data
+            : Buffer.from((logoDoc.data as any).buffer || logoDoc.data);
+        }
+      } catch (err) {
+        console.error('Failed to retrieve logo from database:', err);
+      }
     }
   }
 
   let finalBuffer: Buffer = qrBuffer;
 
-  if (chosenLogoPath) {
+  if (logoBufferToComposite) {
     try {
       const qrDimension = 1024;
       const backingSize = 250; // ~24% of QR dimension
       const logoMaxSize = 190; // ~18.5% of QR dimension (well within 22% limit)
 
-      // 1. Create a white rounded-square backing with slight shadow / rounded corners
+      // 1. Create a white rounded-square backing
       const backingSvg = Buffer.from(
         `<svg width="${backingSize}" height="${backingSize}">
           <rect x="0" y="0" width="${backingSize}" height="${backingSize}" rx="48" ry="48" fill="#ffffff" />
@@ -87,7 +107,7 @@ export async function generateTenantQrCode({
       );
 
       // 2. Read and resize the logo maintaining aspect ratio
-      const resizedLogo = await sharp(chosenLogoPath)
+      const resizedLogo = await sharp(logoBufferToComposite)
         .resize(logoMaxSize, logoMaxSize, {
           fit: 'inside',
           withoutEnlargement: true,
@@ -134,12 +154,34 @@ export async function generateTenantQrCode({
   }
 
   const qrFilename = `${tenantId}.png`;
-  const qrOutputDir = path.join(UPLOADS_BASE_DIR, 'qr');
-  const qrOutputPath = path.join(qrOutputDir, qrFilename);
-
-  await fs.promises.writeFile(qrOutputPath, finalBuffer);
-
   const imagePath = `/uploads/qr/${qrFilename}`;
+
+  // 1. Try writing to local disk
+  try {
+    const qrOutputDir = path.join(UPLOADS_BASE_DIR, 'qr');
+    const qrOutputPath = path.join(qrOutputDir, qrFilename);
+    await fs.promises.writeFile(qrOutputPath, finalBuffer);
+  } catch {
+    // Read-only filesystem on Vercel
+  }
+
+  // 2. Persist in MongoDB
+  try {
+    await connectDB();
+    await UploadedFile.findOneAndUpdate(
+      { path: imagePath },
+      {
+        path: imagePath,
+        data: finalBuffer,
+        mimeType: 'image/png',
+        size: finalBuffer.length,
+      },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    console.error('Failed to persist QR code to database:', err);
+  }
+
   return {
     imagePath,
     updatedAt: new Date(),

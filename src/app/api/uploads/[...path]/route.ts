@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import connectDB from '@/lib/db';
+import UploadedFile from '@/models/UploadedFile';
+
+export const runtime = 'nodejs';
 
 const MIME_MAP: Record<string, string> = {
   '.png': 'image/png',
@@ -19,34 +23,57 @@ export async function GET(
     return new NextResponse('Not Found', { status: 404 });
   }
 
-  const baseUploads = path.resolve(process.cwd(), 'public', 'uploads');
-  const targetPath = path.resolve(baseUploads, ...segments);
+  const relativePath = `/uploads/${segments.join('/')}`;
 
-  // Path traversal prevention: target must be inside public/uploads
-  if (!targetPath.startsWith(baseUploads)) {
-    return new NextResponse('Forbidden', { status: 403 });
+  // 1. Try reading from local disk (fast path for local dev / VPS)
+  try {
+    const baseUploads = path.resolve(process.cwd(), 'public', 'uploads');
+    const targetPath = path.resolve(baseUploads, ...segments);
+
+    // Path traversal check
+    if (targetPath.startsWith(baseUploads) && fs.existsSync(targetPath)) {
+      const stat = await fs.promises.stat(targetPath);
+      if (stat.isFile()) {
+        const ext = path.extname(targetPath).toLowerCase();
+        const contentType = MIME_MAP[ext] || 'application/octet-stream';
+        const fileBuffer = await fs.promises.readFile(targetPath);
+
+        return new NextResponse(new Uint8Array(fileBuffer), {
+          status: 200,
+          headers: {
+            'Content-Type': contentType,
+            'Content-Length': stat.size.toString(),
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        });
+      }
+    }
+  } catch {
+    // Disk read failed, fallback to database storage
   }
 
-  if (!fs.existsSync(targetPath)) {
-    return new NextResponse('File Not Found', { status: 404 });
+  // 2. Fallback to MongoDB storage (for Vercel serverless deployments)
+  try {
+    await connectDB();
+    const fileDoc = await UploadedFile.findOne({ path: relativePath }).lean();
+
+    if (fileDoc && fileDoc.data) {
+      const buffer = Buffer.isBuffer(fileDoc.data)
+        ? fileDoc.data
+        : Buffer.from((fileDoc.data as any).buffer || fileDoc.data);
+
+      return new NextResponse(new Uint8Array(buffer), {
+        status: 200,
+        headers: {
+          'Content-Type': fileDoc.mimeType || 'image/png',
+          'Content-Length': buffer.length.toString(),
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
+    }
+  } catch (dbErr) {
+    console.error('Error serving file from database:', dbErr);
   }
 
-  const stat = await fs.promises.stat(targetPath);
-  if (!stat.isFile()) {
-    return new NextResponse('Not Found', { status: 404 });
-  }
-
-  const ext = path.extname(targetPath).toLowerCase();
-  const contentType = MIME_MAP[ext] || 'application/octet-stream';
-
-  const fileBuffer = await fs.promises.readFile(targetPath);
-
-  return new NextResponse(fileBuffer, {
-    status: 200,
-    headers: {
-      'Content-Type': contentType,
-      'Content-Length': stat.size.toString(),
-      'Cache-Control': 'public, max-age=86400',
-    },
-  });
+  return new NextResponse('File Not Found', { status: 404 });
 }

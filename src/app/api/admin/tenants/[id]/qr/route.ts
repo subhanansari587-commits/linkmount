@@ -34,16 +34,34 @@ export async function GET(
       return NextResponse.json({ error: 'QR not generated' }, { status: 404 });
     }
 
+    let fileBuffer: Buffer | null = null;
     const fullPath = path.resolve(process.cwd(), 'public', qrRelPath.replace(/^\//, ''));
-    if (!fs.existsSync(fullPath)) {
-      return NextResponse.json({ error: 'QR file not found on disk' }, { status: 404 });
+    if (fs.existsSync(fullPath)) {
+      try {
+        fileBuffer = await fs.promises.readFile(fullPath);
+      } catch {
+        // Disk read failed, try DB
+      }
     }
 
-    const fileBuffer = await fs.promises.readFile(fullPath);
+    if (!fileBuffer) {
+      const UploadedFile = (await import('@/models/UploadedFile')).default;
+      const fileDoc = await UploadedFile.findOne({ path: qrRelPath }).lean();
+      if (fileDoc && fileDoc.data) {
+        fileBuffer = Buffer.isBuffer(fileDoc.data)
+          ? fileDoc.data
+          : Buffer.from((fileDoc.data as any).buffer || fileDoc.data);
+      }
+    }
+
+    if (!fileBuffer) {
+      return NextResponse.json({ error: 'QR file not found' }, { status: 404 });
+    }
+
     const safeName = (tenant.name || 'qr-code').replace(/[^a-zA-Z0-9_-]/g, '_');
 
     if (isDownload) {
-      return new NextResponse(fileBuffer, {
+      return new NextResponse(new Uint8Array(fileBuffer), {
         status: 200,
         headers: {
           'Content-Type': 'image/png',
@@ -53,7 +71,7 @@ export async function GET(
       });
     }
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
