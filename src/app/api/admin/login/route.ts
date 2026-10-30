@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Admin from '@/models/Admin';
-import { comparePassword, signSession, setSessionCookie } from '@/lib/auth';
+import { comparePassword, hashPassword, signSession, setSessionCookie } from '@/lib/auth';
 import { loginSchema } from '@/lib/validators';
 import { checkRateLimit, resetRateLimit } from '@/lib/rateLimit';
 
@@ -37,8 +37,24 @@ export async function POST(request: NextRequest) {
     const { email, password } = parsed.data;
 
     await connectDB();
-    const admin = await Admin.findOne({ email: email.toLowerCase() });
+    let admin = await Admin.findOne({ email: email.toLowerCase() });
+    
+    // Auto-seed initial admin on fresh database deployment (e.g. on Vercel)
     if (!admin) {
+      const adminCount = await Admin.countDocuments();
+      if (adminCount === 0) {
+        const defaultEmail = (process.env.ADMIN_EMAIL || 'admin@example.com').toLowerCase();
+        const defaultPassword = process.env.ADMIN_PASSWORD || 'AdminStrongPassword123!';
+        const defaultHash = await hashPassword(defaultPassword);
+        admin = await Admin.create({
+          email: defaultEmail,
+          passwordHash: defaultHash,
+        });
+        console.log(`Auto-seeded initial admin account for ${defaultEmail}`);
+      }
+    }
+
+    if (!admin || admin.email !== email.toLowerCase()) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -67,10 +83,26 @@ export async function POST(request: NextRequest) {
       success: true,
       email: admin.email,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
+
+    let userFriendlyError = 'An unexpected error occurred during login';
+    if (!process.env.MONGODB_URI) {
+      userFriendlyError = 'Database error: MONGODB_URI is not set in Vercel Environment Variables.';
+    } else if (process.env.MONGODB_URI.includes('localhost') || process.env.MONGODB_URI.includes('127.0.0.1')) {
+      userFriendlyError = 'Database error: MONGODB_URI is set to localhost. Please provide a MongoDB Atlas cloud URI in Vercel settings.';
+    } else if (
+      error?.name === 'MongooseServerSelectionError' ||
+      error?.message?.includes('ECONNREFUSED') ||
+      error?.message?.includes('querySrv') ||
+      error?.message?.includes('ETIMEDOUT')
+    ) {
+      userFriendlyError =
+        'Database connection failed. Please ensure MongoDB Atlas Network Access has IP 0.0.0.0/0 allowed.';
+    }
+
     return NextResponse.json(
-      { error: 'An unexpected error occurred during login' },
+      { error: userFriendlyError, details: error?.message },
       { status: 500 }
     );
   }
