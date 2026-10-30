@@ -1,7 +1,14 @@
 import path from 'path';
 import fs from 'fs';
+import dns from 'dns';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Ignore in restricted environments
+}
 
 // Manually load .env.local and .env if present
 function loadEnv() {
