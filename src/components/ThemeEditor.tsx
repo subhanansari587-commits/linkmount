@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Upload01Icon, Delete01Icon, RefreshIcon } from '@/lib/icons';
 import { ITheme } from '@/models/Tenant';
+import ConfirmModal from './ConfirmModal';
 
 interface ThemeEditorProps {
   theme: ITheme;
@@ -92,6 +93,7 @@ const PRESET_THEMES: { name: string; theme: ITheme }[] = [
 export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
   const [uploadingDesktop, setUploadingDesktop] = useState(false);
   const [uploadingMobile, setUploadingMobile] = useState(false);
+  const [bgToDelete, setBgToDelete] = useState<'desktop' | 'mobile' | null>(null);
 
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
@@ -177,6 +179,13 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
       }
       onChange(updated);
       toast.info('Mobile background image removed');
+    }
+  };
+
+  const handleConfirmRemoveBg = () => {
+    if (bgToDelete) {
+      handleRemoveBg(bgToDelete);
+      setBgToDelete(null);
     }
   };
 
@@ -295,7 +304,7 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleRemoveBg('desktop')}
+                        onClick={() => setBgToDelete('desktop')}
                         className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium cursor-pointer transition shadow"
                       >
                         Remove
@@ -343,7 +352,7 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                 {theme.bgDesktopImage && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveBg('desktop')}
+                    onClick={() => setBgToDelete('desktop')}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-medium transition cursor-pointer"
                   >
                     <HugeiconsIcon icon={Delete01Icon} size={14} />
@@ -386,7 +395,7 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleRemoveBg('mobile')}
+                        onClick={() => setBgToDelete('mobile')}
                         className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium cursor-pointer transition shadow"
                       >
                         Remove
@@ -434,7 +443,7 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                 {theme.bgMobileImage && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveBg('mobile')}
+                    onClick={() => setBgToDelete('mobile')}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-medium transition cursor-pointer"
                   >
                     <HugeiconsIcon icon={Delete01Icon} size={14} />
@@ -619,6 +628,20 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
           </div>
         </div>
       </div>
+
+      {/* Confirm Background Delete Warning Modal */}
+      <ConfirmModal
+        isOpen={bgToDelete !== null}
+        title={bgToDelete === 'desktop' ? 'Remove Desktop Background?' : 'Remove Mobile Background?'}
+        message={`Are you sure you want to remove this ${
+          bgToDelete === 'desktop' ? 'desktop/website' : 'mobile'
+        } background image?`}
+        confirmLabel="Yes, Remove Image"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmRemoveBg}
+        onCancel={() => setBgToDelete(null)}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -78,12 +78,125 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegeneratingToken, setIsRegeneratingToken] = useState(false);
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
+  const [showRemoveAvatarModal, setShowRemoveAvatarModal] = useState(false);
+
+  // Auto-Save State & Timers
+  const [autoSaveStatus, setAutoSaveStatus] = useState<
+    'idle' | 'unsaved' | 'saving' | 'saved' | 'error'
+  >('idle');
+  const [lastSavedTime, setLastSavedTime] = useState<string>('');
+  const lastSavedPayloadRef = useRef<string>('');
+  const isInitialMount = useRef(true);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Success modal state after Create
   const [createdTenantData, setCreatedTenantData] = useState<ITenant | null>(null);
 
   // Active tab in form: 'content' | 'theme' | 'qr'
   const [activeTab, setActiveTab] = useState<'content' | 'theme' | 'qr'>('content');
+
+  // Payload constructor
+  const getPayload = useCallback(
+    () => ({
+      name: name.trim(),
+      displayName: displayName.trim(),
+      bio: bio.trim(),
+      avatarPath,
+      links: links.map((l) => ({
+        ...l,
+        label: (l.label || '').trim(),
+        url: normalizeLinkUrl(l.url, l.icon),
+      })),
+      theme,
+      qrColor,
+      qrLogoPath,
+      isActive,
+      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+    }),
+    [name, displayName, bio, avatarPath, links, theme, qrColor, qrLogoPath, isActive, expiresAt]
+  );
+
+  // Initialize lastSavedPayload baseline on mount
+  useEffect(() => {
+    if (initialData?._id) {
+      lastSavedPayloadRef.current = JSON.stringify(getPayload());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2-second debounced auto-save effect
+  useEffect(() => {
+    if (!isEditing || !initialData?._id) return;
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const currentPayload = getPayload();
+    if (!currentPayload.name) return; // Name is required to save
+
+    const currentPayloadStr = JSON.stringify(currentPayload);
+    if (currentPayloadStr === lastSavedPayloadRef.current) {
+      return;
+    }
+
+    setAutoSaveStatus('unsaved');
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        setAutoSaveStatus('saving');
+        const res = await fetch(`/api/admin/tenants/${initialData._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: currentPayloadStr,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Auto-save failed');
+        }
+
+        lastSavedPayloadRef.current = currentPayloadStr;
+        setAutoSaveStatus('saved');
+        const now = new Date();
+        setLastSavedTime(
+          now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        );
+
+        if (data.tenant?.qr) {
+          setQrState(data.tenant.qr);
+        }
+      } catch (err) {
+        console.error('Auto-save error:', err);
+        setAutoSaveStatus('error');
+      }
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [
+    name,
+    displayName,
+    bio,
+    avatarPath,
+    links,
+    theme,
+    qrColor,
+    qrLogoPath,
+    isActive,
+    expiresAt,
+    isEditing,
+    initialData?._id,
+    getPayload,
+  ]);
 
   // Avatar upload handler
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +235,12 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
   };
 
   const handleRemoveAvatar = () => {
+    setShowRemoveAvatarModal(true);
+  };
+
+  const handleConfirmRemoveAvatar = () => {
     setAvatarPath('');
+    setShowRemoveAvatarModal(false);
     toast.info('Avatar removed');
   };
 
@@ -135,24 +253,13 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
       return;
     }
 
-    setIsSubmitting(true);
+    // Cancel pending debounced auto-save to avoid race conditions
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
 
-    const payload = {
-      name: name.trim(),
-      displayName: displayName.trim(),
-      bio: bio.trim(),
-      avatarPath,
-      links: links.map((l) => ({
-        ...l,
-        label: (l.label || '').trim(),
-        url: normalizeLinkUrl(l.url, l.icon),
-      })),
-      theme,
-      qrColor,
-      qrLogoPath,
-      isActive,
-      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
-    };
+    setIsSubmitting(true);
+    const payload = getPayload();
 
     try {
       const url = isEditing
@@ -171,11 +278,13 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
         throw new Error(data.error || 'Failed to save link page');
       }
 
+      lastSavedPayloadRef.current = JSON.stringify(payload);
+      setAutoSaveStatus('saved');
+
       if (isEditing) {
-        toast.success('Page updated successfully!');
-        if (data.tenant) {
-          setQrState(data.tenant.qr);
-        }
+        toast.success('Changes saved successfully! Redirecting...');
+        // Redirect back to dashboard as requested
+        router.push('/admin');
       } else {
         toast.success('Page created successfully!');
         setCreatedTenantData(data.tenant);
@@ -221,26 +330,64 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Form Controls Column (7/12 on large screens) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-200 space-x-6 text-sm font-semibold">
-            {[
-              { id: 'content', label: '1. Content & Links' },
-              { id: 'theme', label: '2. Theme & Design' },
-              { id: 'qr', label: '3. QR Code & Status' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`pb-3 font-medium transition cursor-pointer border-b-2 -mb-[2px] ${
-                  activeTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600 font-bold'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Navigation Tabs & Auto-Save Badge */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200">
+            <div className="flex space-x-6 text-sm font-semibold">
+              {[
+                { id: 'content', label: '1. Content & Links' },
+                { id: 'theme', label: '2. Theme & Design' },
+                { id: 'qr', label: '3. QR Code & Status' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`pb-3 font-medium transition cursor-pointer border-b-2 -mb-[2px] ${
+                    activeTab === tab.id
+                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Auto-Save Indicator (when editing) */}
+            {isEditing && (
+              <div className="pb-2.5 sm:pb-0 flex items-center shrink-0">
+                {autoSaveStatus === 'saving' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/80 animate-in fade-in">
+                    <span className="w-2 h-2 border-2 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
+                    <span>Auto-saving...</span>
+                  </span>
+                )}
+                {autoSaveStatus === 'unsaved' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/80 animate-in fade-in">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Unsaved (saving in 2s)...</span>
+                  </span>
+                )}
+                {autoSaveStatus === 'saved' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 animate-in fade-in">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Auto-saved {lastSavedTime ? `at ${lastSavedTime}` : ''}</span>
+                  </span>
+                )}
+                {autoSaveStatus === 'error' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200/80 animate-in fade-in">
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <span>Auto-save failed</span>
+                  </span>
+                )}
+                {autoSaveStatus === 'idle' && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span>Auto-save active</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* TAB 1: Content & Links */}
@@ -475,16 +622,25 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
               Cancel
             </button>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-sm font-semibold text-white shadow-sm shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer active:scale-95"
-            >
-              {isSubmitting && (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="flex items-center gap-3">
+              {isEditing && autoSaveStatus === 'saved' && (
+                <span className="text-xs text-slate-500 hidden sm:inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>All changes auto-saved</span>
+                </span>
               )}
-              <span>{isEditing ? 'Save Changes' : 'Create Link Page'}</span>
-            </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-sm font-semibold text-white shadow-sm shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                {isSubmitting && (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
+                <span>{isEditing ? 'Save Changes' : 'Create Link Page'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -512,6 +668,18 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
         isLoading={isRegeneratingToken}
         onConfirm={handleRegenerateToken}
         onCancel={() => setShowRegenerateModal(false)}
+      />
+
+      {/* Confirm Remove Avatar Modal */}
+      <ConfirmModal
+        isOpen={showRemoveAvatarModal}
+        title="Remove Profile Avatar?"
+        message="Are you sure you want to remove your profile avatar photo? Visitors will see a placeholder initial instead."
+        confirmLabel="Yes, Remove Avatar"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmRemoveAvatar}
+        onCancel={() => setShowRemoveAvatarModal(false)}
       />
 
       {/* Post-Create Success Dialog */}

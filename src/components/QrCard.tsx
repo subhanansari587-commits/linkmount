@@ -10,6 +10,7 @@ import {
   QrCode01Icon,
 } from '@/lib/icons';
 import { toast } from 'sonner';
+import ConfirmModal from './ConfirmModal';
 
 interface QrCardProps {
   tenantId?: string;
@@ -36,6 +37,7 @@ export default function QrCard({
 }: QrCardProps) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [showRemoveLogoModal, setShowRemoveLogoModal] = useState(false);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,8 +74,9 @@ export default function QrCard({
     }
   };
 
-  const handleRemoveLogo = () => {
+  const handleConfirmRemoveLogo = () => {
     onLogoChange('');
+    setShowRemoveLogoModal(false);
     toast.info('Tenant QR logo removed (will fallback to global default).');
   };
 
@@ -160,8 +163,8 @@ export default function QrCard({
                 </div>
                 <button
                   type="button"
-                  onClick={handleRemoveLogo}
-                  className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer"
+                  onClick={() => setShowRemoveLogoModal(true)}
+                  className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer transition"
                   title="Remove custom logo"
                 >
                   <HugeiconsIcon icon={Delete01Icon} size={16} />
@@ -240,6 +243,18 @@ export default function QrCard({
           )}
         </div>
       </div>
+
+      {/* Confirm Remove QR Logo Warning Modal */}
+      <ConfirmModal
+        isOpen={showRemoveLogoModal}
+        title="Remove Custom QR Logo?"
+        message="Are you sure you want to remove this custom logo from the QR code? The QR code will fallback to the global site logo or a clean pattern."
+        confirmLabel="Yes, Remove Logo"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmRemoveLogo}
+        onCancel={() => setShowRemoveLogoModal(false)}
+      />
     </div>
   );
 }

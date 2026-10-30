@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ILink } from '@/models/Tenant';
 import { ICON_PRESETS } from '@/lib/icons';
 import IconRenderer from './IconRenderer';
+import ConfirmModal from './ConfirmModal';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
@@ -167,10 +168,19 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
     updateLink(index, updates);
   };
 
+  const [linkToDelete, setLinkToDelete] = useState<{ index: number; label: string } | null>(null);
+
   const removeLink = (index: number) => {
     const next = links.filter((_, idx) => idx !== index);
     const reindexed = next.map((l, i) => ({ ...l, order: i }));
     onChange(reindexed);
+  };
+
+  const handleConfirmDeleteLink = () => {
+    if (linkToDelete !== null) {
+      removeLink(linkToDelete.index);
+      setLinkToDelete(null);
+    }
   };
 
   const moveLink = (index: number, direction: 'up' | 'down') => {
@@ -319,7 +329,12 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
                   )}
                   <button
                     type="button"
-                    onClick={() => removeLink(index)}
+                    onClick={() =>
+                      setLinkToDelete({
+                        index,
+                        label: link.label?.trim() || 'Untitled Link',
+                      })
+                    }
                     className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                     title="Delete Link"
                   >
@@ -331,6 +346,18 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
           ))}
         </div>
       )}
+
+      {/* Delete Link Confirmation Warning Modal */}
+      <ConfirmModal
+        isOpen={linkToDelete !== null}
+        title="Delete Link?"
+        message={`Are you sure you want to delete "${linkToDelete?.label || 'this link'}"? This action cannot be undone.`}
+        confirmLabel="Yes, Delete Link"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmDeleteLink}
+        onCancel={() => setLinkToDelete(null)}
+      />
     </div>
   );
 }

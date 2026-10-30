@@ -9,6 +9,7 @@ import {
   LogOut01Icon,
 } from '@/lib/icons';
 import { toast } from 'sonner';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ export default function AdminSettingsPage() {
   const [defaultQrLogoPath, setDefaultQrLogoPath] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [showRemoveLogoModal, setShowRemoveLogoModal] = useState(false);
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -78,8 +80,9 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleRemoveLogo = () => {
+  const handleConfirmRemoveLogo = () => {
     setDefaultQrLogoPath('');
+    setShowRemoveLogoModal(false);
     toast.info('Logo removed. Remember to click "Save Settings".');
   };
 
@@ -210,7 +213,7 @@ export default function AdminSettingsPage() {
               </div>
               <button
                 type="button"
-                onClick={handleRemoveLogo}
+                onClick={() => setShowRemoveLogoModal(true)}
                 className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer"
                 title="Remove Logo"
               >
@@ -317,6 +320,18 @@ export default function AdminSettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Confirm Remove Global Default Logo Modal */}
+      <ConfirmModal
+        isOpen={showRemoveLogoModal}
+        title="Remove Global Default QR Logo?"
+        message="Are you sure you want to remove the global default QR logo? All newly generated QR codes without tenant logos will use standard plain styling."
+        confirmLabel="Yes, Remove Logo"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmRemoveLogo}
+        onCancel={() => setShowRemoveLogoModal(false)}
+      />
     </div>
   );
 }
