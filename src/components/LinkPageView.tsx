@@ -247,32 +247,36 @@ export default function LinkPageView({
               No links available at the moment
             </div>
           ) : (
-            activeLinks.map((link) => (
-              <a
-                key={link._id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackClick(link._id)}
-                style={getButtonStyle(theme.buttonStyle)}
-                className={`w-full py-3.5 px-5 flex items-center gap-3 shadow-lg hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 text-sm sm:text-base font-semibold group cursor-pointer ${getRadiusClass(
-                  theme.radius
-                )}`}
-              >
-                <IconRenderer
-                  icon={link.icon}
-                  size={20}
-                  color={
-                    theme.buttonStyle === 'filled'
-                      ? theme.buttonTextColor || '#0f172a'
-                      : theme.textColor || '#ffffff'
-                  }
-                  className="transition-transform duration-200 group-hover:scale-110"
-                />
-                <span className="flex-1 text-center truncate">{link.label}</span>
-                <span className="w-5" /> {/* Balance spacer to keep label strictly centered */}
-              </a>
-            ))
+            activeLinks.map((link) => {
+              const isDirectAction =
+                link.url.startsWith('tel:') || link.url.startsWith('mailto:');
+              return (
+                <a
+                  key={link._id}
+                  href={link.url}
+                  target={isDirectAction ? undefined : '_blank'}
+                  rel={isDirectAction ? undefined : 'noopener noreferrer'}
+                  onClick={() => trackClick(link._id)}
+                  style={getButtonStyle(theme.buttonStyle)}
+                  className={`w-full py-3.5 px-5 flex items-center gap-3 shadow-lg hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 text-sm sm:text-base font-semibold group cursor-pointer ${getRadiusClass(
+                    theme.radius
+                  )}`}
+                >
+                  <IconRenderer
+                    icon={link.icon}
+                    size={20}
+                    color={
+                      theme.buttonStyle === 'filled'
+                        ? theme.buttonTextColor || '#0f172a'
+                        : theme.textColor || '#ffffff'
+                    }
+                    className="transition-transform duration-200 group-hover:scale-110"
+                  />
+                  <span className="flex-1 text-center truncate">{link.label}</span>
+                  <span className="w-5" /> {/* Balance spacer to keep label strictly centered */}
+                </a>
+              );
+            })
           )}
         </div>
       </div>

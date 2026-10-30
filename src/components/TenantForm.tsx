@@ -14,6 +14,7 @@ import {
 } from '@/lib/icons';
 
 import { ITenant, ILink, ITheme } from '@/models/Tenant';
+import { normalizeLinkUrl } from '@/lib/validators';
 import LinksEditor from './LinksEditor';
 import ThemeEditor from './ThemeEditor';
 import QrCard from './QrCard';
@@ -141,7 +142,11 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
       displayName: displayName.trim(),
       bio: bio.trim(),
       avatarPath,
-      links,
+      links: links.map((l) => ({
+        ...l,
+        label: (l.label || '').trim(),
+        url: normalizeLinkUrl(l.url, l.icon),
+      })),
       theme,
       qrColor,
       qrLogoPath,

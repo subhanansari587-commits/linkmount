@@ -3,7 +3,7 @@ import connectDB from '@/lib/db';
 import Tenant from '@/models/Tenant';
 import Settings from '@/models/Settings';
 import { getServerSession } from '@/lib/auth';
-import { tenantUpdateSchema, sanitizeText } from '@/lib/validators';
+import { tenantUpdateSchema, sanitizeText, normalizeLinkUrl } from '@/lib/validators';
 import { generateTenantQrCode } from '@/lib/qr';
 import { deleteUploadedFile } from '@/lib/upload';
 
@@ -115,7 +115,7 @@ export async function PUT(
     tenant.links = (data.links || []).map((link: any, idx: number) => ({
       _id: link._id,
       label: sanitizeText(link.label),
-      url: link.url.trim(),
+      url: normalizeLinkUrl(link.url, link.icon),
       icon: link.icon || 'link',
       enabled: link.enabled ?? true,
       order: link.order ?? idx,

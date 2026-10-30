@@ -2,16 +2,159 @@ import { z } from 'zod';
 
 export const allowedUrlRegex = /^(https?:\/\/|mailto:|tel:)/i;
 
+/**
+ * Intelligently normalizes raw user inputs into valid web/protocol links:
+ * - Phone numbers (e.g. "+91 9876543210" or "9876543210") -> "tel:+919876543210"
+ * - Emails (e.g. "contact@example.com") -> "mailto:contact@example.com"
+ * - WhatsApp numbers or handles -> "https://wa.me/..."
+ * - Social handles (e.g. "@username" or "username") -> proper platform URL
+ * - Plain domains (e.g. "mywebsite.com") -> "https://mywebsite.com"
+ */
+export function normalizeLinkUrl(rawUrl: string, icon: string = 'link'): string {
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return '';
+
+  const lowerIcon = (icon || '').toLowerCase();
+
+  // 1. Phone numbers: strip tel: prefix and re-format digits cleanly
+  if (lowerIcon === 'phone') {
+    const withoutPrefix = trimmed.replace(/^tel:\s*/i, '');
+    const cleanDigits = withoutPrefix.replace(/[\s-()]/g, '');
+    return `tel:${cleanDigits}`;
+  }
+
+  // 2. Emails: strip mailto: prefix and format as mailto:
+  if (lowerIcon === 'mail' || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) && !trimmed.startsWith('http'))) {
+    const withoutPrefix = trimmed.replace(/^mailto:\s*/i, '');
+    return `mailto:${withoutPrefix}`;
+  }
+
+  // 3. WhatsApp
+  if (lowerIcon === 'whatsapp') {
+    if (trimmed.startsWith('https://wa.me/') || trimmed.startsWith('http://wa.me/')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('wa.me/')) {
+      return `https://${trimmed}`;
+    }
+    if (trimmed.startsWith('https://api.whatsapp.com') || trimmed.startsWith('https://chat.whatsapp.com')) {
+      return trimmed;
+    }
+    const digitsOnly = trimmed.replace(/[^0-9]/g, '');
+    if (digitsOnly.length >= 7) {
+      return `https://wa.me/${digitsOnly}`;
+    }
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  }
+
+  // 4. Social media usernames / handles (@handle or bare username or partial domain)
+  if (lowerIcon === 'instagram') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('instagram.com/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.replace(/^@/, '');
+    return `https://instagram.com/${handle}`;
+  }
+
+  if (lowerIcon === 'twitter') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('x.com/') || trimmed.startsWith('twitter.com/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.replace(/^@/, '');
+    return `https://x.com/${handle}`;
+  }
+
+  if (lowerIcon === 'github') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('github.com/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.replace(/^@/, '');
+    return `https://github.com/${handle}`;
+  }
+
+  if (lowerIcon === 'youtube') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('youtube.com/') || trimmed.startsWith('youtu.be/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+    return `https://youtube.com/${handle}`;
+  }
+
+  if (lowerIcon === 'facebook') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('facebook.com/') || trimmed.startsWith('fb.com/')) {
+      return `https://${trimmed}`;
+    }
+    return `https://facebook.com/${trimmed}`;
+  }
+
+  if (lowerIcon === 'linkedin') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('linkedin.com/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.replace(/^in\//i, '');
+    return `https://linkedin.com/in/${handle}`;
+  }
+
+  if (lowerIcon === 'telegram') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('t.me/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.replace(/^@/, '');
+    return `https://t.me/${handle}`;
+  }
+
+  if (lowerIcon === 'tiktok') {
+    if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('tiktok.com/')) {
+      return `https://${trimmed}`;
+    }
+    const handle = trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+    return `https://tiktok.com/${handle}`;
+  }
+
+  // 5. Already has valid protocol
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  // 6. Generic web URL without protocol -> prepend https://
+  return `https://${trimmed}`;
+}
+
 export const linkSchema = z.object({
   _id: z.string().optional(),
   label: z.string().min(1, 'Link label is required').max(100),
+  icon: z.string().default('link'),
   url: z
     .string()
-    .min(1, 'URL is required')
-    .refine((val) => allowedUrlRegex.test(val.trim()), {
-      message: 'URL must start with http://, https://, mailto:, or tel:',
-    }),
-  icon: z.string().default('link'),
+    .min(1, 'Destination is required')
+    .transform((val) => val.trim()),
   enabled: z.boolean().default(true),
   order: z.number().int().default(0),
   clicks: z.number().int().nonnegative().default(0),

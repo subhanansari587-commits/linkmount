@@ -11,17 +11,111 @@ import {
   ArrowUp01Icon,
   ArrowDown01Icon,
 } from '@/lib/icons';
+import { normalizeLinkUrl } from '@/lib/validators';
 
 interface LinksEditorProps {
   links: ILink[];
   onChange: (updatedLinks: ILink[]) => void;
 }
 
+export function getPresetDefaultLabel(icon: string): string {
+  switch ((icon || '').toLowerCase()) {
+    case 'phone':
+      return 'Call Us';
+    case 'mail':
+      return 'Email Us';
+    case 'whatsapp':
+      return 'WhatsApp';
+    case 'instagram':
+      return 'Instagram';
+    case 'youtube':
+      return 'YouTube';
+    case 'facebook':
+      return 'Facebook';
+    case 'twitter':
+      return 'X (Twitter)';
+    case 'linkedin':
+      return 'LinkedIn';
+    case 'maps':
+      return 'Google Maps';
+    case 'github':
+      return 'GitHub';
+    case 'tiktok':
+      return 'TikTok';
+    case 'telegram':
+      return 'Telegram';
+    case 'discord':
+      return 'Discord';
+    case 'spotify':
+      return 'Spotify';
+    case 'website':
+      return 'Website';
+    case 'link':
+    default:
+      return 'Custom Link';
+  }
+}
+
+export function getPresetPlaceholder(icon: string): string {
+  switch ((icon || '').toLowerCase()) {
+    case 'phone':
+      return 'e.g. +91 98765 43210 or 9876543210';
+    case 'mail':
+      return 'e.g. contact@yourcompany.com';
+    case 'whatsapp':
+      return 'e.g. +91 98765 43210 or wa.me/...';
+    case 'instagram':
+      return 'e.g. @username or instagram.com/...';
+    case 'twitter':
+      return 'e.g. @handle or x.com/...';
+    case 'youtube':
+      return 'e.g. @channel or youtube.com/...';
+    case 'facebook':
+      return 'e.g. username or facebook.com/...';
+    case 'linkedin':
+      return 'e.g. in/username or linkedin.com/...';
+    case 'maps':
+      return 'e.g. maps.google.com/... or location URL';
+    case 'github':
+      return 'e.g. @username or github.com/...';
+    case 'tiktok':
+      return 'e.g. @username or tiktok.com/@...';
+    case 'telegram':
+      return 'e.g. @username or t.me/...';
+    case 'discord':
+      return 'e.g. discord.gg/...';
+    case 'spotify':
+      return 'e.g. open.spotify.com/...';
+    case 'website':
+    case 'link':
+    default:
+      return 'e.g. yourwebsite.com or https://...';
+  }
+}
+
+/**
+ * Strips raw internal prefixes (e.g. tel:, mailto:) so users never have to see or type them.
+ */
+export function getDisplayUrl(url: string, icon: string): string {
+  if (!url) return '';
+  const lowerIcon = (icon || '').toLowerCase();
+  if (lowerIcon === 'phone') {
+    return url.replace(/^tel:\s*/i, '');
+  }
+  if (lowerIcon === 'mail') {
+    return url.replace(/^mailto:\s*/i, '');
+  }
+  if (url === 'https://' && (lowerIcon === 'phone' || lowerIcon === 'mail')) {
+    return '';
+  }
+  return url;
+}
+
 export default function LinksEditor({ links, onChange }: LinksEditorProps) {
   const addLink = () => {
     const newLink: ILink = {
-      label: 'New Link',
-      url: 'https://',
+      label: 'Website',
+      url: '',
       icon: 'website',
       enabled: true,
       order: links.length,
@@ -36,9 +130,45 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
     onChange(next);
   };
 
+  const handleIconChange = (index: number, newIcon: string) => {
+    const currentLink = links[index];
+    const oldIcon = currentLink.icon;
+    const updates: Partial<ILink> = { icon: newIcon };
+
+    // Auto-update label if current label is empty, 'New Link', or matched previous icon default
+    const oldPreset = ICON_PRESETS.find((p) => p.key === oldIcon);
+    const oldDefaultLabel = getPresetDefaultLabel(oldIcon);
+    const isDefaultLabel =
+      !currentLink.label ||
+      currentLink.label === 'New Link' ||
+      currentLink.label === oldPreset?.label ||
+      currentLink.label === oldDefaultLabel;
+
+    if (isDefaultLabel) {
+      updates.label = getPresetDefaultLabel(newIcon);
+    }
+
+    // Clean up incompatible URL prefixes when switching presets
+    let currentUrl = (currentLink.url || '').trim();
+    if (currentUrl === 'https://') {
+      currentUrl = '';
+    }
+
+    if (newIcon === 'phone') {
+      currentUrl = currentUrl.replace(/^(https?:\/\/|mailto:)/i, '');
+    } else if (newIcon === 'mail') {
+      currentUrl = currentUrl.replace(/^(https?:\/\/|tel:)/i, '');
+    } else {
+      // Switching to website or social presets
+      currentUrl = currentUrl.replace(/^(tel:|mailto:)/i, '');
+    }
+
+    updates.url = currentUrl;
+    updateLink(index, updates);
+  };
+
   const removeLink = (index: number) => {
     const next = links.filter((_, idx) => idx !== index);
-    // Re-index order
     const reindexed = next.map((l, i) => ({ ...l, order: i }));
     onChange(reindexed);
   };
@@ -62,7 +192,7 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
         <div>
           <h4 className="text-sm font-semibold text-slate-900">Links & Socials</h4>
           <p className="text-xs text-slate-500">
-            Add custom destination links and social profiles.
+            Add custom destination links, phone/email contact, and social profiles.
           </p>
         </div>
         <button
@@ -138,7 +268,7 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
                     <IconRenderer icon={link.icon} size={18} color="#4f46e5" />
                     <select
                       value={link.icon}
-                      onChange={(e) => updateLink(index, { icon: e.target.value })}
+                      onChange={(e) => handleIconChange(index, e.target.value)}
                       className="bg-transparent text-xs text-slate-800 outline-none cursor-pointer pr-1"
                     >
                       {ICON_PRESETS.map((preset) => (
@@ -160,18 +290,22 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
                     type="text"
                     value={link.label}
                     onChange={(e) => updateLink(index, { label: e.target.value })}
-                    placeholder="Link Label (e.g. My Portfolio)"
+                    placeholder="Link Label (e.g. My Website)"
                     className="w-full px-3 py-1.5 text-sm rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition shadow-xs"
                   />
                 </div>
 
-                {/* URL Input */}
+                {/* Destination Input */}
                 <div className="flex-[1.5] w-full sm:w-auto">
                   <input
                     type="text"
-                    value={link.url}
+                    value={getDisplayUrl(link.url, link.icon)}
                     onChange={(e) => updateLink(index, { url: e.target.value })}
-                    placeholder="https://... or mailto: or tel:"
+                    onBlur={(e) => {
+                      const normalized = normalizeLinkUrl(e.target.value, link.icon);
+                      updateLink(index, { url: normalized });
+                    }}
+                    placeholder={getPresetPlaceholder(link.icon)}
                     className="w-full px-3 py-1.5 text-xs font-mono rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition shadow-xs"
                   />
                 </div>

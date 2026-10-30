@@ -4,7 +4,7 @@ import connectDB from '@/lib/db';
 import Tenant from '@/models/Tenant';
 import Settings from '@/models/Settings';
 import { getServerSession } from '@/lib/auth';
-import { tenantCreateSchema, sanitizeText } from '@/lib/validators';
+import { tenantCreateSchema, sanitizeText, normalizeLinkUrl } from '@/lib/validators';
 import { generateTenantQrCode } from '@/lib/qr';
 
 export const runtime = 'nodejs';
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       token,
       links: (data.links || []).map((link, idx) => ({
         ...link,
+        url: normalizeLinkUrl(link.url, link.icon),
         label: sanitizeText(link.label),
         order: link.order ?? idx,
       })),
