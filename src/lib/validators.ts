@@ -149,11 +149,11 @@ export function normalizeLinkUrl(rawUrl: string, icon: string = 'link'): string 
 
 export const linkSchema = z.object({
   _id: z.string().optional(),
-  label: z.string().min(1, 'Link label is required').max(100),
+  label: z.string().max(100).default(''),
   icon: z.string().default('link'),
   url: z
     .string()
-    .min(1, 'Destination is required')
+    .default('')
     .transform((val) => val.trim()),
   enabled: z.boolean().default(true),
   order: z.number().int().default(0),
@@ -189,7 +189,7 @@ export const themeSchema = z.object({
 export const tenantCreateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
-  bio: z.string().max(200, 'Bio must be at most 200 characters').optional().default(''),
+  bio: z.string().max(500, 'Bio must be at most 500 characters').optional().default(''),
   avatarPath: z.string().optional().default(''),
   links: z.array(linkSchema).optional().default([]),
   theme: themeSchema.optional().default(defaultThemeValues),
@@ -202,7 +202,7 @@ export const tenantCreateSchema = z.object({
 export const tenantUpdateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
-  bio: z.string().max(200, 'Bio must be at most 200 characters').optional().default(''),
+  bio: z.string().max(500, 'Bio must be at most 500 characters').optional().default(''),
   avatarPath: z.string().optional().default(''),
   links: z.array(linkSchema).optional().default([]),
   theme: themeSchema.optional().default(defaultThemeValues),

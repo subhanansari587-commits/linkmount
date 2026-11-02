@@ -158,7 +158,8 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
 
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.error || 'Auto-save failed');
+          const detailMsg = data.details ? `: ${JSON.stringify(data.details)}` : '';
+          throw new Error((data.error || 'Auto-save failed') + detailMsg);
         }
 
         lastSavedPayloadRef.current = currentPayloadStr;

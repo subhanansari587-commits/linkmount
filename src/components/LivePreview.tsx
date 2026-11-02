@@ -232,15 +232,16 @@ export default function LivePreview({
                     >
                       <IconRenderer
                         icon={link.icon}
-                        size={16}
+                        size={18}
                         color={
                           theme.buttonStyle === 'filled'
                             ? theme.buttonTextColor || '#0f172a'
                             : theme.textColor || '#ffffff'
                         }
+                        className="shrink-0"
                       />
                       <span className="flex-1 text-center truncate">{link.label}</span>
-                      <span className="w-4" />
+                      <span className="w-[18px] shrink-0" />
                     </div>
                   ))
                 )}
@@ -346,15 +347,16 @@ export default function LivePreview({
                     >
                       <IconRenderer
                         icon={link.icon}
-                        size={16}
+                        size={18}
                         color={
                           theme.buttonStyle === 'filled'
                             ? theme.buttonTextColor || '#0f172a'
                             : theme.textColor || '#ffffff'
                         }
+                        className="shrink-0"
                       />
                       <span className="flex-1 text-center truncate">{link.label}</span>
-                      <span className="w-4" />
+                      <span className="w-[18px] shrink-0" />
                     </div>
                   ))
                 )}

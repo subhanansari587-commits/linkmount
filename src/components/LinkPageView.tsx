@@ -264,16 +264,16 @@ export default function LinkPageView({
                 >
                   <IconRenderer
                     icon={link.icon}
-                    size={20}
+                    size={22}
                     color={
                       theme.buttonStyle === 'filled'
                         ? theme.buttonTextColor || '#0f172a'
                         : theme.textColor || '#ffffff'
                     }
-                    className="transition-transform duration-200 group-hover:scale-110"
+                    className="transition-transform duration-200 group-hover:scale-110 shrink-0"
                   />
                   <span className="flex-1 text-center truncate">{link.label}</span>
-                  <span className="w-5" /> {/* Balance spacer to keep label strictly centered */}
+                  <span className="w-[22px] shrink-0" /> {/* Balance spacer to keep label strictly centered */}
                 </a>
               );
             })

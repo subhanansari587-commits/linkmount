@@ -48,8 +48,8 @@ export interface ITenant extends Document {
 
 const LinkSchema = new Schema<ILink>(
   {
-    label: { type: String, required: true, trim: true },
-    url: { type: String, required: true, trim: true },
+    label: { type: String, default: '', trim: true },
+    url: { type: String, default: '', trim: true },
     icon: { type: String, default: 'link' },
     enabled: { type: Boolean, default: true },
     order: { type: Number, default: 0 },

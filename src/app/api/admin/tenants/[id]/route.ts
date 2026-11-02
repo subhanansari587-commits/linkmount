@@ -50,6 +50,7 @@ export async function PUT(
     const body = await request.json();
     const parsed = tenantUpdateSchema.safeParse(body);
     if (!parsed.success) {
+      console.error('Validation error on tenant update:', JSON.stringify(parsed.error.format(), null, 2));
       return NextResponse.json(
         { error: 'Validation failed', details: parsed.error.format() },
         { status: 400 }

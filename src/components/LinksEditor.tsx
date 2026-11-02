@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ILink } from '@/models/Tenant';
 import { ICON_PRESETS } from '@/lib/icons';
 import IconRenderer from './IconRenderer';
+import IconDropdown from './IconDropdown';
 import ConfirmModal from './ConfirmModal';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -231,7 +232,8 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
           {links.map((link, index) => (
             <div
               key={link._id || index}
-              className={`p-4 rounded-2xl border transition-all ${
+              style={{ zIndex: links.length - index }}
+              className={`relative p-4 rounded-2xl border transition-all ${
                 link.enabled
                   ? 'bg-slate-50/80 border-slate-200 shadow-xs hover:border-slate-300'
                   : 'bg-slate-50/40 border-slate-200/50 opacity-60'
@@ -272,27 +274,11 @@ export default function LinksEditor({ links, onChange }: LinksEditorProps) {
                   </button>
                 </div>
 
-                {/* Icon Picker */}
-                <div className="relative shrink-0">
-                  <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-xs">
-                    <IconRenderer icon={link.icon} size={18} color="#4f46e5" />
-                    <select
-                      value={link.icon}
-                      onChange={(e) => handleIconChange(index, e.target.value)}
-                      className="bg-transparent text-xs text-slate-800 outline-none cursor-pointer pr-1"
-                    >
-                      {ICON_PRESETS.map((preset) => (
-                        <option
-                          key={preset.key}
-                          value={preset.key}
-                          className="bg-white text-slate-900"
-                        >
-                          {preset.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                {/* Icon Picker with Real Icons */}
+                <IconDropdown
+                  value={link.icon}
+                  onChange={(newIcon) => handleIconChange(index, newIcon)}
+                />
 
                 {/* Label Input */}
                 <div className="flex-1 w-full sm:w-auto">
