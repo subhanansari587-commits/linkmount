@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import IconRenderer from './IconRenderer';
+import ShareModal from './ShareModal';
 
 export interface PublicLink {
   _id: string;
@@ -44,6 +45,15 @@ export default function LinkPageView({
   links,
   theme,
 }: LinkPageViewProps) {
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [pageUrl, setPageUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setPageUrl(window.location.href);
+    }
+  }, []);
+
   // Track page view once per browser session
   useEffect(() => {
     if (typeof window === 'undefined' || !token) return;
@@ -70,6 +80,23 @@ export default function LinkPageView({
       }
     }
   }, [token]);
+
+  const handleShareClick = async () => {
+    const currentUrl = pageUrl || (typeof window !== 'undefined' ? window.location.href : '');
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: displayName?.trim() || name?.trim() || 'LinkMount',
+          text: bio || `Check out ${displayName?.trim() || name?.trim() || 'LinkMount'}'s links`,
+          url: currentUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    setIsShareModalOpen(true);
+  };
 
   // Track link click via sendBeacon / fetch keepalive
   const trackClick = (linkId: string) => {
@@ -159,6 +186,38 @@ export default function LinkPageView({
       className="relative min-h-screen w-full flex flex-col items-center justify-between p-6 sm:p-10 select-none transition-colors duration-300"
       style={!hasImage ? bgFallbackStyle : { backgroundColor: theme.bgColor || '#0f172a' }}
     >
+      {/* Top-Right Floating Share Button */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <button
+          type="button"
+          onClick={handleShareClick}
+          aria-label="Share this page"
+          className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-lg cursor-pointer"
+          style={{
+            backgroundColor: theme.buttonColor ? `${theme.buttonColor}26` : 'rgba(255, 255, 255, 0.18)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            color: theme.textColor || '#ffffff',
+          }}
+          title="Share Page"
+        >
+          <svg
+            className="w-5 h-5 drop-shadow"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+        </button>
+      </div>
+
       {/* Background Images for Mobile & Desktop Viewports */}
       {hasImage && (
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -279,6 +338,37 @@ export default function LinkPageView({
             })
           )}
         </div>
+
+        {/* Bottom Share Button */}
+        <div className="mt-7 flex justify-center">
+          <button
+            type="button"
+            onClick={handleShareClick}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+            style={{
+              backgroundColor: theme.buttonColor ? `${theme.buttonColor}20` : 'rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.22)',
+              color: theme.textColor || '#ffffff',
+            }}
+          >
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            <span>Share This Page</span>
+          </button>
+        </div>
       </div>
 
       {/* Discreet footer */}
@@ -290,6 +380,16 @@ export default function LinkPageView({
           Powered by LinkMount
         </span>
       </footer>
+
+      {/* Share Modal Dialog */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={titleText}
+        url={pageUrl || (typeof window !== 'undefined' ? window.location.href : '')}
+        bio={bio}
+        avatarPath={avatarPath}
+      />
     </main>
   );
 }

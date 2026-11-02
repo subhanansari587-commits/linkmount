@@ -169,6 +169,34 @@ export default function LivePreview({
             )}
 
             <div className="relative z-10 w-full flex flex-col items-center flex-1">
+              {/* Share Icon in mockup */}
+              <div className="absolute -top-1.5 right-0">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md shadow-sm"
+                  style={{
+                    backgroundColor: theme.buttonColor ? `${theme.buttonColor}26` : 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    color: theme.textColor || '#ffffff',
+                  }}
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                </div>
+              </div>
+
               {/* Avatar */}
               <div className="relative mb-3 mt-2 shrink-0">
                 {avatarPath ? (
