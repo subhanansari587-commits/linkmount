@@ -260,8 +260,13 @@ const TenantSchema = new Schema<ITenant>(
   },
   {
     timestamps: true,
+    strict: false,
   }
 );
+
+if (process.env.NODE_ENV !== 'production' && mongoose.models.Tenant) {
+  delete (mongoose.models as any).Tenant;
+}
 
 export const Tenant: Model<ITenant> =
   mongoose.models.Tenant || mongoose.model<ITenant>('Tenant', TenantSchema);
