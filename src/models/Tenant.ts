@@ -30,15 +30,48 @@ export interface IQr {
   updatedAt: Date;
 }
 
+export interface IPaymentInfo {
+  gpay?: string;
+  paytm?: string;
+  phonepe?: string;
+  upiId?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+}
+
+export interface IGalleryItem {
+  _id?: string;
+  url: string;
+  caption?: string;
+}
+
+export interface ILead {
+  _id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  note?: string;
+  createdAt: Date;
+}
+
 export interface ITenant extends Document {
   name: string;
   displayName?: string;
+  designation?: string;
+  companyName?: string;
+  companyAddress?: string;
+  companyBio?: string;
+  natureOfBusiness?: string;
   bio?: string;
   avatarPath?: string;
   token: string;
   links: ILink[];
   theme: ITheme;
   qr: IQr;
+  paymentInfo?: IPaymentInfo;
+  gallery?: IGalleryItem[];
+  leads?: ILead[];
   isActive: boolean;
   expiresAt: Date | null;
   views: number;
@@ -84,6 +117,38 @@ const QrSchema = new Schema<IQr>(
   { _id: false }
 );
 
+const PaymentInfoSchema = new Schema<IPaymentInfo>(
+  {
+    gpay: { type: String, default: '', trim: true },
+    paytm: { type: String, default: '', trim: true },
+    phonepe: { type: String, default: '', trim: true },
+    upiId: { type: String, default: '', trim: true },
+    bankName: { type: String, default: '', trim: true },
+    accountNumber: { type: String, default: '', trim: true },
+    ifscCode: { type: String, default: '', trim: true },
+  },
+  { _id: false }
+);
+
+const GalleryItemSchema = new Schema<IGalleryItem>(
+  {
+    url: { type: String, required: true, trim: true },
+    caption: { type: String, default: '', trim: true },
+  },
+  { _id: true }
+);
+
+const LeadSchema = new Schema<ILead>(
+  {
+    name: { type: String, required: true, trim: true },
+    phone: { type: String, required: true, trim: true },
+    email: { type: String, default: '', trim: true },
+    note: { type: String, default: '', trim: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const TenantSchema = new Schema<ITenant>(
   {
     name: {
@@ -96,15 +161,52 @@ const TenantSchema = new Schema<ITenant>(
       default: '',
       trim: true,
     },
+    designation: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    companyName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    companyAddress: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    companyBio: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    natureOfBusiness: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     bio: {
       type: String,
-      maxlength: 200,
+      maxlength: 500,
       default: '',
       trim: true,
     },
     avatarPath: {
       type: String,
       default: '',
+    },
+    paymentInfo: {
+      type: PaymentInfoSchema,
+      default: () => ({}),
+    },
+    gallery: {
+      type: [GalleryItemSchema],
+      default: [],
+    },
+    leads: {
+      type: [LeadSchema],
+      default: [],
     },
     token: {
       type: String,

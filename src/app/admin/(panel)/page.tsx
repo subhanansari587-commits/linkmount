@@ -21,12 +21,15 @@ interface TenantItem {
   _id: string;
   name: string;
   displayName?: string;
+  designation?: string;
+  companyName?: string;
   bio?: string;
   avatarPath?: string;
   token: string;
   isActive: boolean;
   expiresAt?: string | null;
   views: number;
+  leads?: any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   links?: any[];
   qr?: {
@@ -330,8 +333,12 @@ export default function AdminDashboardPage() {
                       )}
                       <div className="min-w-0">
                         <h2 className="text-sm font-bold text-slate-900 truncate">{tenant.name}</h2>
-                        {tenant.displayName && (
-                          <p className="text-xs text-slate-500 truncate">{tenant.displayName}</p>
+                        {(tenant.designation || tenant.companyName || tenant.displayName) && (
+                          <p className="text-xs text-slate-500 truncate">
+                            {tenant.designation
+                              ? `${tenant.designation}${tenant.companyName ? ` • ${tenant.companyName}` : ''}`
+                              : tenant.displayName}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -412,8 +419,13 @@ export default function AdminDashboardPage() {
                       <div className="text-xs font-semibold text-slate-900">
                         {tenant.views || 0} views
                       </div>
-                      <div className="text-[11px] text-slate-500">
-                        {tenant.links?.length || 0} links
+                      <div className="text-[11px] text-slate-500 flex items-center justify-end gap-1.5">
+                        <span>{tenant.links?.length || 0} links</span>
+                        {tenant.leads && tenant.leads.length > 0 && (
+                          <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded text-[10px] border border-emerald-200">
+                            {tenant.leads.length} leads
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

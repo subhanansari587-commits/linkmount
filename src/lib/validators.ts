@@ -186,13 +186,55 @@ export const themeSchema = z.object({
   radius: z.enum(['sm', 'md', 'full']).default('full'),
 });
 
+export const defaultPaymentInfoValues = {
+  gpay: '',
+  paytm: '',
+  phonepe: '',
+  upiId: '',
+  bankName: '',
+  accountNumber: '',
+  ifscCode: '',
+};
+
+export const paymentInfoSchema = z.object({
+  gpay: z.string().optional().default(''),
+  paytm: z.string().optional().default(''),
+  phonepe: z.string().optional().default(''),
+  upiId: z.string().optional().default(''),
+  bankName: z.string().optional().default(''),
+  accountNumber: z.string().optional().default(''),
+  ifscCode: z.string().optional().default(''),
+});
+
+export const galleryItemSchema = z.object({
+  _id: z.string().optional(),
+  url: z.string().min(1, 'Image URL is required'),
+  caption: z.string().optional().default(''),
+});
+
+export const leadSubmitSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  name: z.string().min(1, 'Name is required').max(100),
+  phone: z.string().min(1, 'Phone is required').max(50),
+  email: z.string().optional().default(''),
+  note: z.string().max(500).optional().default(''),
+});
+
 export const tenantCreateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
+  designation: z.string().max(100).optional().default(''),
+  companyName: z.string().max(100).optional().default(''),
+  companyAddress: z.string().max(300).optional().default(''),
+  companyBio: z.string().max(1000).optional().default(''),
+  natureOfBusiness: z.string().max(150).optional().default(''),
   bio: z.string().max(500, 'Bio must be at most 500 characters').optional().default(''),
   avatarPath: z.string().optional().default(''),
   links: z.array(linkSchema).optional().default([]),
   theme: themeSchema.optional().default(defaultThemeValues),
+  paymentInfo: paymentInfoSchema.optional().default(defaultPaymentInfoValues),
+  gallery: z.array(galleryItemSchema).optional().default([]),
+  leads: z.array(z.any()).optional().default([]),
   qrColor: z.string().optional().default('#000000'),
   qrLogoPath: z.string().optional().default(''),
   isActive: z.boolean().optional().default(true),
@@ -202,10 +244,18 @@ export const tenantCreateSchema = z.object({
 export const tenantUpdateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
+  designation: z.string().max(100).optional().default(''),
+  companyName: z.string().max(100).optional().default(''),
+  companyAddress: z.string().max(300).optional().default(''),
+  companyBio: z.string().max(1000).optional().default(''),
+  natureOfBusiness: z.string().max(150).optional().default(''),
   bio: z.string().max(500, 'Bio must be at most 500 characters').optional().default(''),
   avatarPath: z.string().optional().default(''),
   links: z.array(linkSchema).optional().default([]),
   theme: themeSchema.optional().default(defaultThemeValues),
+  paymentInfo: paymentInfoSchema.optional().default(defaultPaymentInfoValues),
+  gallery: z.array(galleryItemSchema).optional().default([]),
+  leads: z.array(z.any()).optional().default([]),
   qrColor: z.string().optional().default('#000000'),
   qrLogoPath: z.string().optional().default(''),
   isActive: z.boolean().optional().default(true),

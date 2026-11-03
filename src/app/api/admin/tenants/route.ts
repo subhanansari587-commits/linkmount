@@ -72,8 +72,16 @@ export async function POST(request: NextRequest) {
     const newTenant = new Tenant({
       name: sanitizeText(data.name),
       displayName: sanitizeText(data.displayName || ''),
+      designation: sanitizeText(data.designation || ''),
+      companyName: sanitizeText(data.companyName || ''),
+      companyAddress: sanitizeText(data.companyAddress || ''),
+      companyBio: sanitizeText(data.companyBio || ''),
+      natureOfBusiness: sanitizeText(data.natureOfBusiness || ''),
       bio: sanitizeText(data.bio || ''),
       avatarPath: data.avatarPath || '',
+      paymentInfo: data.paymentInfo || {},
+      gallery: data.gallery || [],
+      leads: data.leads || [],
       token,
       links: (data.links || []).map((link, idx) => ({
         ...link,

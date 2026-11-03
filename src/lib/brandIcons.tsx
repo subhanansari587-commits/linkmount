@@ -488,6 +488,131 @@ export function BrandLinkIcon({ size = 20, className = '' }: BrandIconProps) {
 }
 
 /**
+ * 17. Google Pay (GPay)
+ */
+export function BrandGPayIcon({ size = 20, className = '' }: BrandIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="0.8" />
+      {/* Google G Colors */}
+      <path
+        d="M17.3 12.2c0-.3 0-.6-.1-.9h-5.2v1.8h3c-.1.7-.5 1.3-1.1 1.7v1.4h1.8c1-1 1.6-2.4 1.6-4z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 17.5c1.5 0 2.8-.5 3.7-1.4l-1.8-1.4c-.5.3-1.1.5-1.9.5-1.5 0-2.7-1-3.2-2.3H7v1.5c1 1.9 2.9 3.1 5 3.1z"
+        fill="#34A853"
+      />
+      <path
+        d="M8.8 12.9c-.1-.4-.2-.8-.2-1.2s.1-.8.2-1.2V9H7c-.4.9-.7 1.9-.7 3s.3 2.1.7 3l1.8-1.4z"
+        fill="#FBBC04"
+      />
+      <path
+        d="M12 7.7c.8 0 1.6.3 2.2.8l1.6-1.6C14.8 6.1 13.5 5.5 12 5.5c-2.1 0-4 1.2-5 3.1l1.8 1.5c.5-1.3 1.7-2.4 3.2-2.4z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
+/**
+ * 18. Paytm
+ */
+export function BrandPaytmIcon({ size = 20, className = '' }: BrandIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" fill="#002E6E" />
+      {/* Light blue Paytm accent 'P' */}
+      <path
+        d="M7.5 7h4c1.8 0 3 1.1 3 2.8s-1.2 2.8-3 2.8H9.8V17H7.5V7zm2.3 3.8h1.7c.6 0 1-.4 1-1s-.4-1-1-1H9.8v2z"
+        fill="#00BAF2"
+      />
+      <circle cx="16.5" cy="15.8" r="1.2" fill="#00BAF2" />
+    </svg>
+  );
+}
+
+/**
+ * 19. PhonePe
+ */
+export function BrandPhonepeIcon({ size = 20, className = '' }: BrandIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" fill="#5F259F" />
+      <path
+        d="M14.8 7.5h-5.6v2h1.8v2.2c0 2.2 1.5 3.5 3.5 3.5h.3V13h-.3c-1 0-1.6-.6-1.6-1.6V9.5h1.9v-2zm-1.8 7.8l2.5 3.2h2.2l-2.8-3.6c.3-.2.6-.4.9-.7 1-1 1.4-2.2 1.4-3.7V7.5h-1.8v3c0 1.9-1.2 3.1-2.4 3.8v1z"
+        fill="#FFFFFF"
+      />
+    </svg>
+  );
+}
+
+/**
+ * 20. Bank / Account
+ */
+export function BrandBankIcon({ size = 20, className = '' }: BrandIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" fill="#0F172A" />
+      <path
+        d="M12 5.5L5.5 9v1.2h13V9L12 5.5zM6.8 11.2h2v4.5h-2v-4.5zm4.2 0h2v4.5h-2v-4.5zm4.2 0h2v4.5h-2v-4.5zM5.5 16.8v1.4h13v-1.4h-13z"
+        fill="#FFFFFF"
+      />
+    </svg>
+  );
+}
+
+/**
+ * 21. Message / SMS
+ */
+export function BrandMessageIcon({ size = 20, className = '' }: BrandIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" fill="#10B981" />
+      <path
+        d="M7 8.5C7 7.7 7.7 7 8.5 7h7c.8 0 1.5.7 1.5 1.5v5c0 .8-.7 1.5-1.5 1.5H11l-2.8 2.2c-.3.2-.7 0-.7-.4V15h-.5c-.8 0-1.5-.7-1.5-1.5v-5zm2.5 1.8h5v1h-5v-1zm0 2.2h3.5v1h-3.5v-1z"
+        fill="#FFFFFF"
+      />
+    </svg>
+  );
+}
+
+/**
  * Registry mapping icon preset keys to their authentic brand components.
  */
 export const BRAND_ICONS_MAP: Record<
@@ -510,9 +635,15 @@ export const BRAND_ICONS_MAP: Record<
   discord: BrandDiscordIcon,
   spotify: BrandSpotifyIcon,
   link: BrandLinkIcon,
+  gpay: BrandGPayIcon,
+  paytm: BrandPaytmIcon,
+  phonepe: BrandPhonepeIcon,
+  bank: BrandBankIcon,
+  message: BrandMessageIcon,
 };
 
 export function hasBrandIcon(key: string): boolean {
   if (!key) return false;
   return Boolean(BRAND_ICONS_MAP[key.toLowerCase().trim()]);
 }
+

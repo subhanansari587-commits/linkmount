@@ -26,18 +26,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const allowedTypes: UploadType[] = ['avatar', 'logo', 'bg-desktop', 'bg-mobile'];
+    const allowedTypes: UploadType[] = ['avatar', 'logo', 'bg-desktop', 'bg-mobile', 'gallery'];
     if (!allowedTypes.includes(type)) {
       return NextResponse.json(
-        { error: 'Invalid upload type. Must be "avatar", "logo", "bg-desktop", or "bg-mobile".' },
+        { error: 'Invalid upload type. Must be "avatar", "logo", "bg-desktop", "bg-mobile", or "gallery".' },
         { status: 400 }
       );
     }
 
-    const maxLimit = type.startsWith('bg-') ? MAX_BG_FILE_SIZE : MAX_FILE_SIZE;
+    const isLargeType = type.startsWith('bg-') || type === 'gallery';
+    const maxLimit = isLargeType ? MAX_BG_FILE_SIZE : MAX_FILE_SIZE;
     if (file.size > maxLimit) {
       return NextResponse.json(
-        { error: `File size exceeds maximum permitted limit of ${type.startsWith('bg-') ? '5MB' : '2MB'}.` },
+        { error: `File size exceeds maximum permitted limit of ${isLargeType ? '5MB' : '2MB'}.` },
         { status: 400 }
       );
     }

@@ -98,7 +98,21 @@ export async function PUT(
 
     tenant.name = sanitizeText(data.name);
     tenant.displayName = sanitizeText(data.displayName || '');
+    tenant.designation = sanitizeText(data.designation || '');
+    tenant.companyName = sanitizeText(data.companyName || '');
+    tenant.companyAddress = sanitizeText(data.companyAddress || '');
+    tenant.companyBio = sanitizeText(data.companyBio || '');
+    tenant.natureOfBusiness = sanitizeText(data.natureOfBusiness || '');
     tenant.bio = sanitizeText(data.bio || '');
+    if (data.paymentInfo !== undefined) {
+      tenant.paymentInfo = data.paymentInfo;
+    }
+    if (data.gallery !== undefined) {
+      tenant.gallery = data.gallery;
+    }
+    if (data.leads !== undefined) {
+      tenant.leads = data.leads;
+    }
     tenant.isActive = data.isActive ?? tenant.isActive;
     tenant.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
     tenant.theme = data.theme || tenant.theme;

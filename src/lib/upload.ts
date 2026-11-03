@@ -8,7 +8,7 @@ import UploadedFile from '@/models/UploadedFile';
 export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 export const MAX_BG_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export type UploadType = 'avatar' | 'logo' | 'bg-desktop' | 'bg-mobile';
+export type UploadType = 'avatar' | 'logo' | 'bg-desktop' | 'bg-mobile' | 'gallery';
 
 export interface FileValidationResult {
   valid: boolean;
@@ -75,6 +75,7 @@ export function ensureUploadDirs(): void {
       path.join(UPLOADS_BASE_DIR, 'logos'),
       path.join(UPLOADS_BASE_DIR, 'qr'),
       path.join(UPLOADS_BASE_DIR, 'backgrounds'),
+      path.join(UPLOADS_BASE_DIR, 'gallery'),
     ];
     for (const dir of dirs) {
       if (!fs.existsSync(/*turbopackIgnore: true*/ dir)) {
@@ -92,6 +93,7 @@ export function ensureUploadDirs(): void {
  * - Resizes avatars to max 512px.
  * - Resizes desktop backgrounds to max 2560px.
  * - Resizes mobile backgrounds to max 1200px.
+ * - Resizes gallery photos to max 1920px.
  * - Saves into local disk if writable, and always syncs to MongoDB UploadedFile.
  * - Returns relative path (e.g. /uploads/backgrounds/abc123xyz.webp)
  */
@@ -134,11 +136,25 @@ export async function processAndSaveImage(
         withoutEnlargement: true,
       })
       .toBuffer();
+  } else if (type === 'gallery') {
+    // Resize gallery photos to max 1920px, maintaining aspect ratio
+    processedBuffer = await sharp(buffer)
+      .resize(1920, 1920, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .toBuffer();
   }
 
   const filename = `${nanoid(16)}.${ext}`;
   const folder =
-    type === 'avatar' ? 'avatars' : type === 'logo' ? 'logos' : 'backgrounds';
+    type === 'avatar'
+      ? 'avatars'
+      : type === 'logo'
+      ? 'logos'
+      : type === 'gallery'
+      ? 'gallery'
+      : 'backgrounds';
   const targetDir = path.join(UPLOADS_BASE_DIR, folder);
   const targetPath = path.join(targetDir, filename);
   const relativePath = `/uploads/${folder}/${filename}`;
