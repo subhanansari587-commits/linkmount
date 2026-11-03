@@ -58,6 +58,9 @@ export interface ILead {
 export interface ITenant extends Document {
   name: string;
   displayName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactWebsite?: string;
   designation?: string;
   companyName?: string;
   companyAddress?: string;
@@ -157,6 +160,21 @@ const TenantSchema = new Schema<ITenant>(
       trim: true,
     },
     displayName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    contactPhone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    contactEmail: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    contactWebsite: {
       type: String,
       default: '',
       trim: true,

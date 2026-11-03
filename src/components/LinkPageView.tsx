@@ -35,6 +35,9 @@ interface LinkPageViewProps {
   token: string;
   displayName?: string;
   name?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactWebsite?: string;
   designation?: string;
   companyName?: string;
   companyAddress?: string;
@@ -53,6 +56,9 @@ export default function LinkPageView({
   token,
   displayName,
   name,
+  contactPhone,
+  contactEmail,
+  contactWebsite,
   designation,
   companyName,
   companyAddress,
@@ -141,9 +147,9 @@ export default function LinkPageView({
         fullName: titleText,
         designation,
         companyName,
-        phone: phoneLink?.url,
-        email: emailLink?.url,
-        website: websiteLink?.url,
+        phone: contactPhone || phoneLink?.url,
+        email: contactEmail || emailLink?.url,
+        website: contactWebsite || websiteLink?.url,
         address: companyAddress,
         note: companyBio || bio,
         avatarUrl: avatarPath,

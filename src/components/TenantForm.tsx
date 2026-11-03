@@ -51,6 +51,11 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
   const [avatarPath, setAvatarPath] = useState(initialData?.avatarPath || '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
+  // Direct Contact Info state (Saved in visitor's phonebook on 'Add to contacts')
+  const [contactPhone, setContactPhone] = useState(initialData?.contactPhone || '');
+  const [contactEmail, setContactEmail] = useState(initialData?.contactEmail || '');
+  const [contactWebsite, setContactWebsite] = useState(initialData?.contactWebsite || '');
+
   // Business Card & Company Info state
   const [designation, setDesignation] = useState(initialData?.designation || '');
   const [companyName, setCompanyName] = useState(initialData?.companyName || '');
@@ -127,6 +132,9 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
     () => ({
       name: name.trim(),
       displayName: displayName.trim(),
+      contactPhone: contactPhone.trim(),
+      contactEmail: contactEmail.trim(),
+      contactWebsite: contactWebsite.trim(),
       designation: designation.trim(),
       companyName: companyName.trim(),
       companyAddress: companyAddress.trim(),
@@ -162,6 +170,9 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
     [
       name,
       displayName,
+      contactPhone,
+      contactEmail,
+      contactWebsite,
       designation,
       companyName,
       companyAddress,
@@ -257,6 +268,9 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
   }, [
     name,
     displayName,
+    contactPhone,
+    contactEmail,
+    contactWebsite,
     designation,
     companyName,
     companyAddress,
@@ -684,6 +698,71 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
           {/* TAB 2: Business & Payments */}
           {activeTab === 'business' && (
             <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Direct Contact Details for vCard / Add to Contacts */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <IconRenderer icon="phone" size={20} className="text-emerald-600" />
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">
+                      Direct Contact Details (Saved on &ldquo;Add to contacts&rdquo;)
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      These details are bundled into the downloadable vCard (.vcf) when visitors tap &ldquo;Add to contacts&rdquo;.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Contact Phone */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Primary Phone / Mobile Number
+                    </label>
+                    <input
+                      type="text"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="e.g. +91 98765 43210"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Saved directly to visitor&apos;s phonebook on tap.
+                    </p>
+                  </div>
+
+                  {/* Contact Email */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Primary Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="e.g. contact@f2fintech.in"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Saved to visitor&apos;s contact card.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Contact Website */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Official Website URL
+                  </label>
+                  <input
+                    type="url"
+                    value={contactWebsite}
+                    onChange={(e) => setContactWebsite(e.target.value)}
+                    placeholder="e.g. https://f2fintech.in"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-indigo-500 focus:outline-none transition shadow-xs"
+                  />
+                </div>
+              </div>
+
               {/* Company & Designation Information */}
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
@@ -1220,6 +1299,9 @@ export default function TenantForm({ initialData, isEditing = false }: TenantFor
           <LivePreview
             name={name}
             displayName={displayName}
+            contactPhone={contactPhone}
+            contactEmail={contactEmail}
+            contactWebsite={contactWebsite}
             designation={designation}
             companyName={companyName}
             companyAddress={companyAddress}

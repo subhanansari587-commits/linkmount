@@ -68,6 +68,9 @@ export default async function PublicTenantPage({ params }: PageProps) {
       token={serialized.token}
       displayName={serialized.displayName}
       name={serialized.name}
+      contactPhone={serialized.contactPhone}
+      contactEmail={serialized.contactEmail}
+      contactWebsite={serialized.contactWebsite}
       designation={serialized.designation}
       companyName={serialized.companyName}
       companyAddress={serialized.companyAddress}

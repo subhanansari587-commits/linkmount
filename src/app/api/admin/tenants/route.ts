@@ -72,6 +72,9 @@ export async function POST(request: NextRequest) {
     const newTenant = new Tenant({
       name: sanitizeText(data.name),
       displayName: sanitizeText(data.displayName || ''),
+      contactPhone: sanitizeText(data.contactPhone || ''),
+      contactEmail: sanitizeText(data.contactEmail || ''),
+      contactWebsite: sanitizeText(data.contactWebsite || ''),
       designation: sanitizeText(data.designation || ''),
       companyName: sanitizeText(data.companyName || ''),
       companyAddress: sanitizeText(data.companyAddress || ''),

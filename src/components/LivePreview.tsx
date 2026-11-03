@@ -29,6 +29,9 @@ export interface PreviewTheme {
 interface LivePreviewProps {
   displayName?: string;
   name?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactWebsite?: string;
   designation?: string;
   companyName?: string;
   companyAddress?: string;
@@ -45,6 +48,9 @@ interface LivePreviewProps {
 export default function LivePreview({
   displayName,
   name,
+  contactPhone,
+  contactEmail,
+  contactWebsite,
   designation,
   companyName,
   companyAddress,

@@ -223,6 +223,9 @@ export const leadSubmitSchema = z.object({
 export const tenantCreateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
+  contactPhone: z.string().max(50).optional().default(''),
+  contactEmail: z.string().max(100).optional().default(''),
+  contactWebsite: z.string().max(300).optional().default(''),
   designation: z.string().max(100).optional().default(''),
   companyName: z.string().max(100).optional().default(''),
   companyAddress: z.string().max(300).optional().default(''),
@@ -244,6 +247,9 @@ export const tenantCreateSchema = z.object({
 export const tenantUpdateSchema = z.object({
   name: z.string().min(1, 'Internal name is required').max(100),
   displayName: z.string().max(100).optional().default(''),
+  contactPhone: z.string().max(50).optional().default(''),
+  contactEmail: z.string().max(100).optional().default(''),
+  contactWebsite: z.string().max(300).optional().default(''),
   designation: z.string().max(100).optional().default(''),
   companyName: z.string().max(100).optional().default(''),
   companyAddress: z.string().max(300).optional().default(''),

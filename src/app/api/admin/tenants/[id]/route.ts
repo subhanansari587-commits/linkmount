@@ -98,6 +98,9 @@ export async function PUT(
 
     tenant.name = sanitizeText(data.name);
     tenant.displayName = sanitizeText(data.displayName || '');
+    tenant.contactPhone = sanitizeText(data.contactPhone || '');
+    tenant.contactEmail = sanitizeText(data.contactEmail || '');
+    tenant.contactWebsite = sanitizeText(data.contactWebsite || '');
     tenant.designation = sanitizeText(data.designation || '');
     tenant.companyName = sanitizeText(data.companyName || '');
     tenant.companyAddress = sanitizeText(data.companyAddress || '');
