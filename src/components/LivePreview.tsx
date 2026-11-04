@@ -236,29 +236,48 @@ export default function LivePreview({
 
       {/* Top 4 Digital Business Card CTAs */}
       <div className="w-full mt-4 grid grid-cols-2 gap-1.5">
-        <div className="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-xs bg-white text-slate-900 border border-slate-200">
+        <div className="py-2 px-2.5 rounded-xl flex items-center justify-start gap-1.5 text-[10px] font-bold shadow-xs bg-white text-slate-900 border border-slate-200 text-left">
           <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
           </svg>
           <span className="truncate">Add to contacts</span>
         </div>
-        <div className="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-xs bg-blue-600 text-white">
-          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <div className="py-2 px-2.5 rounded-xl flex items-center justify-start gap-1.5 text-[10px] font-bold shadow-xs bg-blue-600 text-white text-left">
+          <svg
+            className="w-3.5 h-3.5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="18" cy="5" r="3" />
             <circle cx="6" cy="12" r="3" />
             <circle cx="18" cy="19" r="3" />
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
-          <span>Share</span>
+          <span className="truncate">Share</span>
         </div>
-        <div className="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-xs bg-emerald-700 text-white">
-          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+        <div className="py-2 px-2.5 rounded-xl flex items-center justify-start gap-1.5 text-[10px] font-bold shadow-xs bg-emerald-700 text-white text-left">
+          <svg
+            className="w-3.5 h-3.5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m16 3 4 4-4 4" />
+            <path d="M20 7H4" />
+            <path d="m8 21-4-4 4-4" />
+            <path d="M4 17h16" />
           </svg>
           <span className="truncate">Exchange</span>
         </div>
-        <div className="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-xs bg-[#25D366] text-white">
+        <div className="py-2 px-2.5 rounded-xl flex items-center justify-start gap-1.5 text-[10px] font-bold shadow-xs bg-[#25D366] text-white text-left">
           <IconRenderer icon="whatsapp" size={14} />
           <span className="truncate">WhatsApp</span>
         </div>

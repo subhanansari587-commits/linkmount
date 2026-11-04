@@ -402,11 +402,11 @@ export default function LinkPageView({
           <button
             type="button"
             onClick={handleSaveContact}
-            className="py-3 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-white text-slate-900 border border-slate-200/90"
+            className="py-3 px-3.5 sm:px-4 rounded-2xl flex items-center justify-start gap-2 sm:gap-2.5 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-white text-slate-900 border border-slate-200/90 text-left"
             title="Download vCard contact"
           >
             <svg className="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+              <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
             </svg>
             <span className="truncate">Add to contacts</span>
           </button>
@@ -415,7 +415,7 @@ export default function LinkPageView({
           <button
             type="button"
             onClick={handleShareClick}
-            className="py-3 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-blue-600 hover:bg-blue-500 text-white"
+            className="py-3 px-3.5 sm:px-4 rounded-2xl flex items-center justify-start gap-2 sm:gap-2.5 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-blue-600 hover:bg-blue-500 text-white text-left"
             title="Share this card"
           >
             <svg
@@ -433,31 +433,42 @@ export default function LinkPageView({
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
-            <span>Share</span>
+            <span className="truncate">Share</span>
           </button>
 
           {/* 3. Exchange Contact */}
           <button
             type="button"
             onClick={() => setIsExchangeModalOpen(true)}
-            className="py-3 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white"
+            className="py-3 px-3.5 sm:px-4 rounded-2xl flex items-center justify-start gap-2 sm:gap-2.5 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white text-left"
             title="Send your contact details"
           >
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+            <svg
+              className="w-4 h-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m16 3 4 4-4 4" />
+              <path d="M20 7H4" />
+              <path d="m8 21-4-4 4-4" />
+              <path d="M4 17h16" />
             </svg>
-            <span className="truncate">Exchange Contact</span>
+            <span className="truncate">Exchange</span>
           </button>
 
           {/* 4. Share on WhatsApp */}
           <button
             type="button"
             onClick={handleShareOnWhatsApp}
-            className="py-3 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-[#25D366] hover:bg-[#20ba5a] text-white"
+            className="py-3 px-3.5 sm:px-4 rounded-2xl flex items-center justify-start gap-2 sm:gap-2.5 text-xs sm:text-sm font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer bg-[#25D366] hover:bg-[#20ba5a] text-white text-left"
             title="Share via WhatsApp"
           >
             <IconRenderer icon="whatsapp" size={18} />
-            <span className="truncate">Share on WhatsApp</span>
+            <span className="truncate">WhatsApp</span>
           </button>
         </div>
 
