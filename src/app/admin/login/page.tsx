@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { QrCode01Icon, Mail01Icon } from '@/lib/icons';
+import { Link01Icon, Mail01Icon } from '@/lib/icons';
 import { toast } from 'sonner';
 
 function LoginForm() {
@@ -59,7 +59,7 @@ function LoginForm() {
       {/* Brand Header */}
       <div className="text-center mb-8">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-indigo-600/25 mb-4">
-          <HugeiconsIcon icon={QrCode01Icon} size={28} color="#ffffff" strokeWidth={2} />
+          <HugeiconsIcon icon={Link01Icon} size={28} color="#ffffff" strokeWidth={2} />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Admin Portal</h1>
         <p className="mt-1 text-xs text-slate-500">

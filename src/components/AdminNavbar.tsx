@@ -53,7 +53,7 @@ export default function AdminNavbar({
         <div className="flex items-center gap-8">
           <Link href="/admin" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <HugeiconsIcon icon={QrCode01Icon} size={20} color="#ffffff" strokeWidth={2} />
+              <HugeiconsIcon icon={Link01Icon} size={20} color="#ffffff" strokeWidth={2} />
             </div>
             <div>
               <span className="font-bold text-slate-900 text-base tracking-tight">{siteName}</span>
