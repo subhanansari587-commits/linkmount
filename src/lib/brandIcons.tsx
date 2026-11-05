@@ -128,7 +128,7 @@ export function BrandYoutubeIcon({ size = 20, className = '' }: BrandIconProps) 
 
 /**
  * 4. WhatsApp
- * Official WhatsApp speech bubble with authentic telephone receiver.
+ * Official WhatsApp speech bubble with authentic telephone receiver and white border outline.
  */
 export function BrandWhatsappIcon({ size = 20, className = '' }: BrandIconProps) {
   return (
@@ -140,10 +140,21 @@ export function BrandWhatsappIcon({ size = 20, className = '' }: BrandIconProps)
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
+      {/* Outer White Border for speech bubble */}
+      <path
+        fill="#FFFFFF"
+        stroke="#FFFFFF"
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.528 5.337L2 22l4.82-1.503a9.957 9.957 0 0 0 5.192 1.487h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.039-5.176-2.926-7.062A9.92 9.92 0 0 0 12.012 2z"
+      />
+      {/* Green Inner Speech Bubble */}
       <path
         fill="#25D366"
         d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.528 5.337L2 22l4.82-1.503a9.957 9.957 0 0 0 5.192 1.487h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.039-5.176-2.926-7.062A9.92 9.92 0 0 0 12.012 2z"
       />
+      {/* White Phone Receiver */}
       <path
         fill="#FFFFFF"
         d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.979-.275-.1-.475-.15-.676.15-.2.301-.776.979-.951 1.18-.175.2-.351.226-.652.075-.301-.15-1.27-.468-2.42-1.493-.894-.798-1.498-1.783-1.674-2.084-.175-.301-.019-.464.132-.614.136-.135.301-.351.451-.527.151-.175.2-.301.301-.501.101-.2.051-.376-.025-.527-.075-.15-.676-1.63-.927-2.232-.244-.587-.492-.507-.676-.516l-.576-.01c-.2 0-.526.075-.802.376-.275.301-1.052 1.028-1.052 2.508 0 1.48 1.077 2.909 1.227 3.11.15.2 2.12 3.238 5.137 4.542.717.31 1.278.495 1.714.634.721.23 1.377.197 1.895.12.578-.087 1.78-.727 2.03-1.43.251-.702.251-1.304.176-1.43-.075-.125-.276-.2-.577-.35z"
